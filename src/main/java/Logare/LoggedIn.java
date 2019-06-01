@@ -1,6 +1,7 @@
 package Logare;
 
 import Domain.Users;
+import Persistence.UsersRepository;
 import Service.UsersService;
 
 import javax.swing.*;
@@ -40,10 +41,21 @@ public class LoggedIn {
                     numberSpace++;
                 }
             }
+
+            //daca se introduce "y y" este normal sa nu fie bine
+            //apoi se introduce "yy" si apare "Your username contains valid characters"
+            //dar dupa aceea se revine la bucla for de la randul 49
+
+            for(i=0;i<username.length();i++){
+                if((username.charAt(i)<(int) 'a' || username.charAt(i)>(int) 'z')&&(username.charAt(i)<(int) 'A' || username.charAt(i)>(int) 'Z')&&(username.charAt(i)<(int) '0' || username.charAt(i)>(int) '9')){
+                    insertUsername(frame,againUsername);
+                }
+            }
         }
 
         //pt OK
         if(username!=null && !username.equals("") && numberSpace!=username.length() && !username.contains(" ")){
+            JOptionPane.showMessageDialog(frame,"Your username contains valid characters");
             users.setUsername(username.trim());
         }
 
@@ -152,9 +164,27 @@ public class LoggedIn {
     private void loggedIn(JFrame frame) throws SQLException {
         insertPersonalUsername(frame);
         insertPersonalPassword(frame);
+
+        boolean check=false;
+        //acum verific daca baza de date contine obiectul users cu username-ul si password-ul respectiv
+        for(Users users:usersService.getUsers()){
+            if(this.users.getUsername().equals(users.getUsername()) && this.users.getPassword().equals(users.getPassword())){
+                check=true;
+                break;
+            }
+        }
+
+        if(check==true){
+            JOptionPane.showMessageDialog(frame,"You are log in");
+        }
+        else{
+            JOptionPane.showMessageDialog(frame,"This account does not exist");
+            loggedIn(frame);
+        }
     }
 
     private void insertPersonalUsername(JFrame frame) throws SQLException {
+        JOptionPane.showMessageDialog(frame, "Your username can contains only uppercase letters, lowercase letters and digits", "Alert", JOptionPane.WARNING_MESSAGE);
         String username=JOptionPane.showInputDialog(frame,"Enter your username");
         int i;
         int numberSpace=0;
@@ -164,16 +194,24 @@ public class LoggedIn {
                     numberSpace++;
                 }
             }
+
+            for(i=0;i<username.length();i++){
+                if((username.charAt(i)<(int) 'a' || username.charAt(i)>(int) 'z')&&(username.charAt(i)<(int) 'A' || username.charAt(i)>(int) 'Z')&&(username.charAt(i)<(int) '0' || username.charAt(i)>(int) '9')){
+                    insertPersonalUsername(frame);
+                }
+            }
         }
 
         //pt OK
         if(username!=null && !username.equals("") && numberSpace!=username.length() && !username.contains(" ")){
+            JOptionPane.showMessageDialog(frame,"Your username contains valid characters");
             users.setUsername(username.trim());
         }
 
         //pt Cancel
         if(username==null || username.equals("") || numberSpace==username.length() || username.contains(" ")) {
             JOptionPane.showMessageDialog(frame, "You must insert and validate a username");
+            insertPersonalUsername(frame);
         }
     }
 
@@ -213,6 +251,7 @@ public class LoggedIn {
         //Cancel
         if(option==1){
             JOptionPane.showMessageDialog(frame, "You must insert and validate a password", "Alert", JOptionPane.WARNING_MESSAGE);
+            insertPersonalPassword(frame);
         }
     }
 }
